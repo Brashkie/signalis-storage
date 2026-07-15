@@ -49,6 +49,22 @@ signalis-storage/
     └── stores.test.ts        22 tests
 ```
 
+## ⚠️ Gotcha: `vitest.config.mts` (no `.ts`)
+
+El archivo de config de vitest es **`.mts`**, no `.ts`. No es un capricho:
+
+- `package.json` declara `"type": "commonjs"` → Node carga los `.ts`/`.js` como CJS.
+- Vite (que vitest usa por dentro) es **ESM-only** desde v5.
+- Node 18 y 20 **no pueden** hacer `require()` de un módulo ESM → `ERR_REQUIRE_ESM`.
+- Node 22.12+ **sí puede** (feature nueva) → el `.ts` parece funcionar… hasta que
+  el CI lo corre en Node 18/20 y explota.
+
+La extensión `.mts` fuerza carga ESM en **todas** las versiones de Node.
+
+**Aplica a todo el ecosistema:** cualquier paquete tuyo con `"type": "commonjs"` +
+vitest tiene este bug latente (signalis, strenor, ws, vekziun…). Si su CI solo
+prueba Node 22, no se nota. Renombrar `vitest.config.ts` → `.mts` lo resuelve.
+
 ## ⚙️ CI/CD (.github/)
 
 ```
